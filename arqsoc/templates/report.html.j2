@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ArqSOC Scan Report - {{ file_info.name }}</title>
+<style>
+body { font-family: monospace; max-width: 960px; margin: 0 auto; padding: 20px; background: #1a1a2e; color: #e0e0e0; }
+h1 { color: #00d4ff; border-bottom: 2px solid #00d4ff; }
+h2 { color: #0fa; }
+h3 { color: #ff6; }
+table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+th, td { border: 1px solid #333; padding: 6px 10px; text-align: left; }
+th { background: #2a2a4e; color: #00d4ff; }
+td { background: #1e1e3a; }
+.malicious { color: #ff4444; font-weight: bold; }
+.suspicious { color: #ffaa00; font-weight: bold; }
+.benign { color: #44ff44; }
+.unknown { color: #888; }
+.meta { color: #888; font-size: 0.85em; }
+.section { margin: 20px 0; }
+</style>
+</head>
+<body>
+<h1>ArqSOC Scan Report</h1>
+<p class="meta">Generated: {{ generated }} | ArqSOC v{{ arqsoc_version }}</p>
+
+<div class="section">
+<h2>File Info</h2>
+<table>
+<tr><th>Field</th><th>Value</th></tr>
+<tr><td>Name</td><td>{{ file_info.name }}</td></tr>
+<tr><td>Path</td><td>{{ file_info.path }}</td></tr>
+<tr><td>Size</td><td>{{ file_info.size }} bytes</td></tr>
+<tr><td>Type</td><td>{{ file_info.binary_type.value | upper }}</td></tr>
+<tr><td>Architecture</td><td>{{ file_info.architecture.value | upper }}</td></tr>
+{% if file_info.compiler %}<tr><td>Compiler</td><td>{{ file_info.compiler }}</td></tr>{% endif %}
+{% if file_info.compile_time %}<tr><td>Compile Time</td><td>{{ file_info.compile_time }}</td></tr>{% endif %}
+{% if file_info.is_dotnet %}<tr><td>.NET</td><td>Yes</td></tr>{% endif %}
+</table>
+</div>
+
+<div class="section">
+<h2>Hashes</h2>
+<table>
+<tr><th>Algorithm</th><th>Value</th></tr>
+<tr><td>MD5</td><td>{{ hashes.md5 }}</td></tr>
+<tr><td>SHA1</td><td>{{ hashes.sha1 }}</td></tr>
+<tr><td>SHA256</td><td>{{ hashes.sha256 }}</td></tr>
+{% if hashes.imphash %}<tr><td>ImpHash</td><td>{{ hashes.imphash }}</td></tr>{% endif %}
+</table>
+</div>
+
+<div class="section">
+<h2>Sections</h2>
+<table>
+<tr><th>Name</th><th>Entropy</th><th>VA</th><th>Raw Size</th><th>Flags</th><th>Status</th></tr>
+{% for sec in sections %}
+<tr>
+<td>{{ sec.name }}</td>
+<td>{{ "%.2f" | format(sec.entropy) }}</td>
+<td>0x{{ "%08x" | format(sec.virtual_address) }}</td>
+<td>{{ sec.raw_size }}</td>
+<td>{% if sec.is_readable %}R{% endif %}{% if sec.is_writable %}W{% endif %}{% if sec.is_executable %}X{% endif %}</td>
+<td>{% if sec.is_suspicious %}<span class="suspicious">HIGH</span>{% elif sec.anomaly_reason %}{{ sec.anomaly_reason }}{% else %}-{% endif %}</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+
+<div class="section">
+<h2>Verdict</h2>
+<p class="{{ threat_level }}">{{ threat_level | upper }}</p>
+<p>Confidence: {{ "%.0f" | format(confidence * 100) }}%</p>
+</div>
+
+{% if indicators %}
+<div class="section">
+<h2>Threat Indicators</h2>
+<table>
+<tr><th>Type</th><th>Value</th><th>Confidence</th><th>Source</th></tr>
+{% for ind in indicators %}
+<tr>
+<td>{{ ind.type }}</td>
+<td>{{ ind.value }}</td>
+<td>{{ "%.0f" | format(ind.confidence * 100) }}%</td>
+<td>{{ ind.source }}</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+{% endif %}
+
+{% if packer and packer.is_packed %}
+<div class="section">
+<h2>Packer Detection</h2>
+<p class="suspicious">PACKED: {{ packer.packer_name }} ({{ "%.0f" | format(packer.confidence * 100) }}% confidence)</p>
+</div>
+{% endif %}
+
+{% if yara_matches %}
+<div class="section">
+<h2>YARA Matches</h2>
+<table>
+<tr><th>Rule</th><th>Severity</th><th>Tags</th></tr>
+{% for m in yara_matches %}
+<tr>
+<td>{{ m.rule_name }}</td>
+<td>{{ m.meta.get("severity", "unknown") }}</td>
+<td>{{ m.tags | join(", ") }}</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+{% endif %}
+
+<p class="meta">End of report</p>
+</body>
+</html>

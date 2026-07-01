@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ArqSOC Incident Report - {{ report.title }}</title>
+<style>
+body { font-family: monospace; max-width: 960px; margin: 0 auto; padding: 20px; background: #1a1a2e; color: #e0e0e0; }
+h1 { color: #ff4444; border-bottom: 2px solid #ff4444; }
+h2 { color: #0fa; }
+h3 { color: #ff6; }
+table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+th, td { border: 1px solid #333; padding: 6px 10px; text-align: left; }
+th { background: #2a2a4e; color: #00d4ff; }
+td { background: #1e1e3a; }
+.critical { color: #ff4444; font-weight: bold; }
+.high { color: #ff8800; font-weight: bold; }
+.medium { color: #ffaa00; }
+.low { color: #44ff44; }
+.info { color: #888; }
+.meta { color: #888; font-size: 0.85em; }
+.section { margin: 20px 0; }
+ol li { margin: 5px 0; }
+</style>
+</head>
+<body>
+<h1>Incident Report: {{ report.title or "Untitled" }}</h1>
+<p class="meta">Generated: {{ generated }} | ArqSOC v{{ arqsoc_version }}</p>
+
+<div class="section">
+<p><strong>Date:</strong> {{ report.date or "N/A" }}</p>
+<p><strong>Scope:</strong> {{ report.scope or "N/A" }}</p>
+<p><strong>Summary:</strong> {{ report.summary or "N/A" }}</p>
+</div>
+
+<div class="section">
+<h2>Risk Assessment</h2>
+<p>Score: <span class="{% if report.risk_assessment.risk_score >= 0.7 %}critical{% elif report.risk_assessment.risk_score >= 0.4 %}high{% else %}low{% endif %}">{{ "%.0f" | format(report.risk_assessment.risk_score * 100) }}%</span></p>
+{% if report.risk_assessment.impact %}<p>Impact: {{ report.risk_assessment.impact }}</p>{% endif %}
+{% if report.risk_assessment.likelihood %}<p>Likelihood: {{ report.risk_assessment.likelihood }}</p>{% endif %}
+{% if report.risk_assessment.affected_assets %}
+<p>Affected Assets: {{ report.risk_assessment.affected_assets | join(", ") }}</p>
+{% endif %}
+</div>
+
+{% if report.iocs %}
+<div class="section">
+<h2>Indicators of Compromise ({{ report.iocs | length }})</h2>
+<table>
+<tr><th>Type</th><th>Value</th><th>Risk</th><th>Context</th></tr>
+{% for ioc in report.iocs %}
+<tr>
+<td>{{ ioc.ioc_type.value }}</td>
+<td>{{ ioc.value }}</td>
+<td class="{{ ioc.risk_level.value }}">{{ ioc.risk_level.value | upper }}</td>
+<td>{{ ioc.context }}</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+{% endif %}
+
+{% if report.alerts %}
+<div class="section">
+<h2>Correlated Alerts ({{ report.alerts | length }})</h2>
+<table>
+<tr><th>Severity</th><th>Title</th><th>Confidence</th></tr>
+{% for alert in report.alerts %}
+<tr>
+<td class="{{ alert.severity.value }}">{{ alert.severity.value | upper }}</td>
+<td>{{ alert.title }}</td>
+<td>{{ "%.0f" | format(alert.confidence * 100) }}%</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+{% endif %}
+
+{% if report.mitre_mappings %}
+<div class="section">
+<h2>MITRE ATT&CK ({{ report.mitre_mappings | length }} techniques)</h2>
+<table>
+<tr><th>ID</th><th>Tactic</th><th>Name</th><th>Evidence</th></tr>
+{% for m in report.mitre_mappings %}
+<tr>
+<td>{{ m.technique_id }}</td>
+<td>{{ m.tactic }}</td>
+<td>{{ m.name }}</td>
+<td>{{ m.evidence }}</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+{% endif %}
+
+{% if report.timeline %}
+<div class="section">
+<h2>Timeline ({{ report.timeline | length }} events)</h2>
+<table>
+<tr><th>Timestamp</th><th>Type</th><th>Severity</th><th>Description</th></tr>
+{% for entry in report.timeline %}
+<tr>
+<td>{{ entry.timestamp or "N/A" }}</td>
+<td>{{ entry.event_type }}</td>
+<td class="{{ entry.severity }}">{{ entry.severity | upper }}</td>
+<td>{{ entry.description }}</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+{% endif %}
+
+{% if report.recommendations %}
+<div class="section">
+<h2>Recommendations</h2>
+<ol>
+{% for rec in report.recommendations %}
+<li>{{ rec }}</li>
+{% endfor %}
+</ol>
+</div>
+{% endif %}
+
+<p class="meta">End of incident report</p>
+</body>
+</html>
