@@ -2,6 +2,7 @@
 
 Full-featured SOC analysis terminal toolkit. Pure Python, no AI -- built for
 security analysts, incident responders, and malware reverse engineers.
+Tested on Kali Linux and Windows 11.
 
 ## Features
 
@@ -83,6 +84,16 @@ arqsoc lookup 8.8.8.8 --vt-key YOUR_KEY
 ```
 
 All commands support `--json`, `--quiet`, and `--output <file>` flags.
+
+## Platforms
+
+| OS | Status |
+|---|---|
+| Kali Linux (rolling) | CI tested |
+| Windows 11 | CI tested |
+
+ASCII-safe terminal output -- no Unicode blocks, emojis, or special characters.
+Works on cp1252 (Windows) and UTF-8 (Linux) terminals alike.
 
 ## Project Structure
 
@@ -181,8 +192,9 @@ pip install -e ".[dev]"
 pytest
 ```
 
-128 tests covering all modules. Tests auto-detect system binaries for
-cross-platform compatibility (Kali Linux / Windows 11).
+128 tests covering all modules. CI runs on Kali Linux (Docker) and Windows.
+Tests auto-detect system binaries (`/bin/ls` on Linux, `notepad.exe` on
+Windows) for cross-platform compatibility.
 
 ## License
 
