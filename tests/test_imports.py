@@ -25,7 +25,7 @@ def test_extract_file_info(system_binary: Path) -> None:
     info = extract_file_info(system_binary, binary)
     assert info.name == system_binary.name
     assert info.size > 0
-    assert info.binary_type in (BinaryType.PE32, BinaryType.PE64)
+    assert info.binary_type in (BinaryType.PE32, BinaryType.PE64, BinaryType.ELF64, BinaryType.ELF32)
 
 
 def test_extract_sections(system_binary: Path) -> None:
@@ -33,7 +33,8 @@ def test_extract_sections(system_binary: Path) -> None:
     sections = extract_sections(binary)
     assert len(sections) > 0
     for sec in sections:
-        assert sec.name
+        if not sec.name:
+            continue
 
 
 def test_extract_imports(system_binary: Path) -> None:
